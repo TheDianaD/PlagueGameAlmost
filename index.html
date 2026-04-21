@@ -9,351 +9,87 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:        #050914;
-    --bg-text:   #060c18;
-    --text:      #dfe4f0;
-    --dim:       rgba(223,228,240,0.52);
-    --gold:      #c8a44a;
-    --gold-dim:  rgba(200,164,74,0.25);
-    --div:       rgba(255,255,255,0.07);
-    --fd:        'Cormorant Garamond', serif;
-    --fb:        'EB Garamond', serif;
-    --topbar-h:  44px;
-    --stats-h:   50px;
-    --tabs-h:    44px;
-    --choices-h: 130px;
+    --bg: #050914; --bg-text: #060c18; --text: #dfe4f0; --dim: rgba(223,228,240,0.52);
+    --gold: #c8a44a; --gold-dim: rgba(200,164,74,0.25); --div: rgba(255,255,255,0.07);
+    --fd: 'Cormorant Garamond', serif; --fb: 'EB Garamond', serif;
+    --topbar-h: 44px; --stats-h: 50px; --tabs-h: 44px;
   }
 
-  html, body {
-    height: 100%; overflow: hidden;
-    background: var(--bg); color: var(--text); font-family: var(--fb);
-  }
+  html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--fb); }
+  #app { display: grid; grid-template-rows: var(--topbar-h) var(--stats-h) 1fr; height: 100vh; }
 
-  /* ═══════════════════════
-     APP SHELL
-  ═══════════════════════ */
-  #app {
-    display: grid;
-    grid-template-rows: var(--topbar-h) var(--stats-h) 1fr;
-    height: 100vh;
+  /* TOP BAR & RESTART BUTTON */
+  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 1.4rem; background: rgba(3,5,12,0.98); border-bottom: 1px solid var(--div); z-index: 30; }
+  #topbar-title { font-family: var(--fd); font-size: clamp(0.78rem,1.05vw,0.98rem); font-weight: 600; color: rgba(223,228,240,0.58); overflow: hidden; text-overflow: ellipsis; max-width: 65%; }
+  #rewind { 
+    color: var(--gold) !important; font-weight: 700; background: rgba(200,164,74,0.1) !important; 
+    height: var(--topbar-h); padding: 0 1rem; border: none; border-left: 1px solid var(--div); 
+    cursor: pointer; text-transform: uppercase; letter-spacing: 0.14em; 
   }
+  #rewind:hover { background: var(--gold) !important; color: var(--bg) !important; }
 
-  /* TOP BAR */
-  #topbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 1.4rem;
-    background: rgba(3,5,12,0.98);
-    border-bottom: 1px solid var(--div);
-    z-index: 30;
-  }
-  #topbar-title {
-    font-family: var(--fd); font-size: clamp(0.78rem,1.05vw,0.98rem);
-    font-weight: 600; color: rgba(223,228,240,0.58);
-    letter-spacing: 0.02em; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis; max-width: 65%;
-  }
-  #byline-el {
-    font-size: 0.6rem; letter-spacing: 0.2em;
-    text-transform: uppercase; color: rgba(223,228,240,0.2);
-  }
-  #topbar-btns { display: flex; }
-  #topbar-btns button {
-    height: var(--topbar-h); padding: 0 1rem;
-    font-family: var(--fb); font-size: 0.67rem;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    color: rgba(223,228,240,0.3); background: none;
-    border: none; border-left: 1px solid var(--div);
-    cursor: pointer; transition: color 0.13s, background 0.13s;
-  }
-  #topbar-btns button:hover  { color: rgba(223,228,240,0.8); background: rgba(255,255,255,0.03); }
-  #topbar-btns button:disabled { color: rgba(255,255,255,0.1); cursor: default; }
+  /* BRIGHT STAT HEADERS */
+  #stats { display: flex; background: rgba(3,5,12,0.97); border-bottom: 1px solid var(--div); }
+  .stat-cell { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 1rem; border-right: 1px solid var(--div); min-width: 0; }
+  .stat-label { font-size: 0.55rem; letter-spacing: 0.18em; text-transform: uppercase; color: #ffffff; opacity: 0.9; line-height: 1; }
+  .stat-val { font-family: var(--fd); font-size: 1.05rem; font-weight: 600; color: var(--text); line-height: 1.15; white-space: nowrap; }
 
-  #rewind {
-  color: var(--gold) !important; /* Forces the gold color */
-  font-weight: 700;
-  background: rgba(200,164,74,0.1) !important;
-  border-left: 1px solid var(--div);
-}
-#rewind:hover {
-  background: var(--gold) !important;
-  color: var(--bg) !important;
-}
-  /* STATS BAR */
-  #stats {
-    display: flex;
-    background: rgba(3,5,12,0.97);
-    border-bottom: 1px solid var(--div);
-  }
-  .stat-cell {
-    flex: 1; display: flex; flex-direction: column;
-    justify-content: center; padding: 0 1rem;
-    border-right: 1px solid var(--div); min-width: 0;
-  }
-  .stat-cell:last-child { border-right: none; flex: 1.5; }
-/* STATS HEADERS - Much brighter now */
-.stat-label {
-  font-size: 0.55rem; 
-  letter-spacing: 0.18em;
-  text-transform: uppercase; 
-  color: rgba(223, 228, 240, 0.85); /* Increased contrast significantly */
-  line-height: 1;
-}
-  .stat-val {
-    font-family: var(--fd); font-size: 1.05rem; font-weight: 600;
-    color: var(--text); line-height: 1.15; white-space: nowrap;
-  }
-  #status-value { font-size: 0.88rem; }
-  #season-label { font-family: var(--fb); font-size: 0.75rem; font-style: italic; color: var(--dim); }
-
-  /* ═══════════════════════
-     STAGE
-  ═══════════════════════ */
-  #stage {
-    display: grid;
-    grid-template-columns: 50% 1fr;
-    overflow: hidden;
-  }
-/* Brighten and highlight the Restart button */
-#rewind {
-  color: var(--gold) !important;
-  font-weight: 700;
-  background: rgba(200,164,74,0.1) !important;
-  border-left: 1px solid var(--div);
-}
-#rewind:hover {
-  background: var(--gold) !important;
-  color: var(--bg) !important;
-}
-
-/* Make the choice prompt more visible */
-#choices-label {
-  font-size: 0.85rem; 
-  color: var(--gold); 
-  padding: 0.8rem 1rem 0.4rem; 
-}
-
-/* Move the stat popup to the bottom right of the choice area */
-#stat-delta {
-  position: absolute; 
-  bottom: 10px;
-  right: 10px;
-  top: auto; 
-  left: auto;
-  border: 1px solid var(--gold);
-}
-  /* LEFT COLUMN */
-  #left-col {
-    position: relative; display: flex; flex-direction: column;
-    overflow: hidden; border-right: 1px solid var(--div);
-    background: var(--bg-text);
-  }
-
-  .outerContainer {
-    flex: 1; overflow-y: auto; overflow-x: hidden;
-    padding: 1.8rem 2.4rem 1.8rem 2.6rem;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.06) transparent;
-    will-change: transform; transform: translateZ(0);
-  }
-  .outerContainer::-webkit-scrollbar { width: 3px; }
-  .outerContainer::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); }
-
-  .header { margin-bottom: 1.6rem; }
-  .header.invisible { display: none; }
-  .header h1 {
-    font-family: var(--fd); font-size: clamp(1.2rem,1.6vw,1.65rem);
-    font-weight: 700; line-height: 1.25;
-  }
-  .header::after {
-    content: ''; display: block; margin-top: 1rem; height: 1px;
-    background: linear-gradient(to right, var(--div) 0%, transparent 70%);
-  }
-  .byline { font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); margin-top: 0.35rem; }
-
+  /* STAGE LAYOUT */
+  #stage { display: grid; grid-template-columns: 50% 1fr; overflow: hidden; }
+  #left-col { position: relative; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--div); background: var(--bg-text); }
+  .outerContainer { flex: 1; overflow-y: auto; padding: 1.8rem 2.4rem; scrollbar-width: thin; }
   #story > p { font-size: 1.18rem; line-height: 1.92; margin-bottom: 0.6rem; }
-  #story > p strong { color: var(--gold); font-weight: 500; font-style: normal; }
-  #story > p em     { color: var(--gold); font-style: italic; }
-  #story > p.section-start::first-letter {
-    font-family: var(--fd); font-size: 3.5em; font-weight: 700;
-    float: left; line-height: 0.82; margin: 0.06em 0.1em 0 0;
-    text-shadow: 0 0 22px rgba(130,165,220,0.5);
-  }
-  .vocab-notice { margin: 0.8rem 0; color: var(--gold); font-family: var(--fd); font-size: 0.9rem; }
+  #story > p.section-start::first-letter { font-family: var(--fd); font-size: 3.5em; float: left; line-height: 0.82; margin: 0.06em 0.1em 0 0; text-shadow: 0 0 22px rgba(130,165,220,0.5); }
 
-  /* SLIDE-UP PANEL OVERLAY */
+  /* RIGHT COL: Image and relocated UI */
+  #right-col { display: flex; flex-direction: column; overflow: hidden; background: var(--bg); position: relative; }
+  #scene-wrap { flex: 0 0 52%; position: relative; overflow: hidden; background: var(--bg); }
+  #scene-img { width: 100%; height: 100%; background-repeat: no-repeat; background-position: center; background-size: contain; padding: 14px; background-origin: content-box; transition: opacity 0.4s ease; }
+  
+  /* RELOCATED OVERLAY PANELS */
   #panel-overlay {
-    position: absolute;
-    inset: 0 0 var(--tabs-h) 0;
-    background: var(--bg-text);
-    transform: translateY(102%);
-    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
-    overflow-y: auto; z-index: 10;
-    padding: 1.6rem 2.4rem 1.6rem 2.6rem;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.06) transparent;
+    position: absolute; inset: 0 0 var(--tabs-h) 0; background: var(--bg-text);
+    transform: translateY(102%); transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    overflow-y: auto; z-index: 10; padding: 1.6rem 2.4rem;
   }
-  #panel-overlay::-webkit-scrollbar { width: 3px; }
-  #panel-overlay::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); }
   #panel-overlay.open { transform: translateY(0); }
-
   .panel-pane { display: none; }
   .panel-pane.active { display: block; }
+  .panel-heading { font-family: var(--fd); font-size: 1.15rem; font-weight: 600; color: var(--gold); margin-bottom: 1rem; border-bottom: 1px solid var(--div); padding-bottom: 0.5rem; }
 
-  .panel-heading {
-    font-family: var(--fd); font-size: 1.15rem; font-weight: 600;
-    color: var(--gold); margin-bottom: 1rem; padding-bottom: 0.6rem;
-    border-bottom: 1px solid var(--div);
-  }
-
-  /* Journal */
-  .journal-season-header {
-    font-family: var(--fd); font-size: 0.95rem; font-weight: 600;
-    color: var(--gold); margin: 0.85rem 0 0.3rem;
-  }
-  .journal-entry { color: var(--dim); font-style: italic; font-size: 0.95rem; margin-bottom: 0.4rem; line-height: 1.65; }
-  .panel-placeholder { color: rgba(223,228,240,0.18); font-style: italic; font-size: 0.82rem; }
-
-  /* Vocab */
-  .vocab-entry { margin-bottom: 0.65rem; }
-  .vocab-term  { color: var(--gold); font-family: var(--fd); font-weight: 600; font-size: 0.96rem; }
-  .vocab-def   { color: var(--dim); font-size: 0.87rem; line-height: 1.55; }
-
-  /* History */
-  .history-entry { padding: 0.6rem 0; border-bottom: 1px solid var(--div); }
-  .history-year  { font-family: var(--fd); font-size: 0.8rem; color: var(--gold); font-weight: 600; }
-  .history-title { font-weight: 500; font-size: 0.9rem; margin-bottom: 0.2rem; }
-  .history-entry p { color: var(--dim); font-size: 0.86rem; line-height: 1.6; }
-
-  /* Map panel */
-  #panel-map-img { width: 100%; height: auto; display: block; }
-
-  /* LEFT TAB BAR */
-  #left-tabs {
-    flex-shrink: 0; height: var(--tabs-h);
-    display: flex; border-top: 1px solid var(--div);
-    background: rgba(3,5,12,0.95); z-index: 11;
-  }
-.ltab {
-  flex: 1; border: none; background: none;
-  font-family: var(--fb); font-size: 0.75rem; 
-  letter-spacing: 0.18em; text-transform: uppercase;
-  color: rgba(223, 228, 240, 0.7); 
-  border-right: 1px solid var(--div);
-  cursor: pointer; transition: all 0.2s;
-}
-.ltab:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.05); }
-.ltab.active { color: var(--gold); background: rgba(200,164,74,0.1); border-top: 2px solid var(--gold); }
-    
-  /* RIGHT COLUMN */
-  #right-col { display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
-
-  #scene-wrap { flex: 0 0 52%; position: relative; overflow: hidden; background: var(--bg); }
-  #scene-img {
-    width: 100%; height: 100%;
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: contain;          /* never crops — shows full image */
-    background-color: var(--bg);
-    padding: 14px;                     /* border of breathing room */
-    background-origin: content-box;   /* image stays inside the padding */
-    transition: opacity 0.4s ease;
-  }
-  #scene-img.fading { opacity: 0; }
-  #scene-season-overlay {
-    position: absolute; bottom: 0.6rem; right: 0.8rem;
-    font-family: var(--fd); font-size: 0.76rem; font-style: italic;
-    color: rgba(223,228,240,0.35); pointer-events: none;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.9);
-  }
-
-  /* CHOICES */
-  #choices-container { flex: 1; display: flex; flex-direction: column; min-height: 0; border-top: 2px solid rgba(200,164,74,0.28); background: linear-gradient(180deg, rgba(200,164,74,0.04) 0%, rgba(3,5,12,0.85) 100%); }
-  #choices-label { font-family: var(--fb); font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(200,164,74,0.5); padding: 0.45rem 1rem 0.22rem; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
-  #hud-choices {
-    flex: 1; overflow-y: auto; padding: 0.2rem 0;
-    display: flex; flex-direction: column;
-    scrollbar-width: thin; scrollbar-color: rgba(200,164,74,0.15) transparent;
-  }
-  #hud-choices::-webkit-scrollbar { display: none; }
-
-  .hud-choice-item {
-    font-family: var(--fb); font-size: 1.08rem;
-    color: rgba(223,228,240,0.75);
-    padding: 0.36rem 1rem 0.36rem 0.8rem;
-    cursor: pointer; width: 100%;
-    border-left: 2px solid transparent;
-    transition: color 0.12s, border-color 0.12s, background 0.12s;
-    display: flex; align-items: baseline; gap: 0.4rem;
-  }
-  .hud-choice-item::before { content: '›'; color: var(--gold-dim); transition: color 0.12s; }
+  /* BIGGER CHOICE UI */
+  #choices-container { flex: 1; display: flex; flex-direction: column; position: relative; border-top: 2px solid var(--gold-dim); background: linear-gradient(180deg, rgba(200,164,74,0.04) 0%, rgba(3,5,12,0.85) 100%); }
+  #choices-label { font-family: var(--fb); font-size: 0.85rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); padding: 0.8rem 1rem 0.4rem; }
+  #hud-choices { flex: 1; overflow-y: auto; padding: 0.2rem 0; display: flex; flex-direction: column; }
+  .hud-choice-item { font-family: var(--fb); font-size: 1.08rem; color: rgba(223,228,240,0.75); padding: 0.5rem 1rem; cursor: pointer; border-left: 2px solid transparent; transition: all 0.12s; display: flex; align-items: baseline; gap: 0.4rem; }
   .hud-choice-item:hover { color: var(--text); border-left-color: var(--gold); background: rgba(200,164,74,0.05); }
-  .hud-choice-item:hover::before { color: var(--gold); }
-  .hud-choice-item.disabled { color: rgba(223,228,240,0.2); cursor: default; font-style: italic; }
-  .hud-no-choices {
-    color: rgba(223,228,240,0.18); font-style: italic;
-    font-size: 0.88rem; padding: 0.45rem 1rem;
-    font-family: var(--fb); width: 100%; text-align: center; align-self: center;
-  }
-/* ATTENTION CHOICE - Special glow for "Wow, fascinating" */
-@keyframes gold-pulse {
-  0% { box-shadow: 0 0 0 0px rgba(200, 164, 74, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(200, 164, 74, 0); }
-  100% { box-shadow: 0 0 0 0px rgba(200, 164, 74, 0); }
-}
-.attention-choice {
-  border: 1px solid var(--gold) !important;
-  margin: 5px 10px;
-  border-radius: 4px;
-  animation: gold-pulse 2s infinite;
-  background: rgba(200, 164, 74, 0.1) !important;
-}
-  /* STAT DELTA */
-  #stat-delta {
-    position: fixed; left: 0;
-    top: calc(var(--topbar-h) + var(--stats-h));
-    background: rgba(6,10,22,0.97);
-    border: 1px solid rgba(200,164,74,0.35);
-    border-top: none; border-left: none;
-    padding: 0.5rem 1.2rem 0.5rem 1rem;
-    display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: center;
-    pointer-events: none; z-index: 100;
-    max-width: 50vw;
-    opacity: 0; transform: translateY(-6px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
-  }
+
+  /* RELOCATED TABS */
+  #left-tabs { flex-shrink: 0; height: var(--tabs-h); display: flex; border-top: 1px solid var(--div); background: rgba(3,5,12,0.95); z-index: 11; }
+  .ltab { flex: 1; border: none; background: none; font-family: var(--fb); font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(223, 228, 240, 0.75); cursor: pointer; transition: all 0.2s; border-right: 1px solid var(--div); }
+  .ltab.active { color: var(--gold); background: rgba(200,164,74,0.1); border-top: 2px solid var(--gold); }
+
+  /* GLOWING CHOICE */
+  @keyframes gold-pulse { 0% { box-shadow: 0 0 0 0px rgba(200, 164, 74, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(200, 164, 74, 0); } 100% { box-shadow: 0 0 0 0px rgba(200, 164, 74, 0); } }
+  .attention-choice { border: 1px solid var(--gold) !important; margin: 5px 10px; border-radius: 4px; animation: gold-pulse 2s infinite; background: rgba(200, 164, 74, 0.1) !important; }
+
+  /* STAT CHANGE POPUP */
+  #stat-delta { position: absolute; bottom: 10px; right: 10px; background: rgba(6,10,22,0.97); border: 1px solid var(--gold); padding: 0.5rem 1.2rem; pointer-events: none; z-index: 100; opacity: 0; transform: translateY(-6px); transition: opacity 0.2s ease, transform 0.2s ease; }
   #stat-delta.visible { opacity: 1; transform: translateY(0); }
-  #stat-delta.fading  { opacity: 0; transform: translateY(-3px); transition: opacity 0.6s ease, transform 0.5s ease; }
-  .delta-item { font-family: var(--fb); font-size: 0.88rem; white-space: nowrap; }
+  .delta-item { font-family: var(--fb); font-size: 0.88rem; white-space: nowrap; margin-left: 0.8rem; }
   .delta-item.pos { color: #7ec97e; }
   .delta-item.neg { color: #d47070; }
-  .delta-item.neu { color: rgba(223,228,240,0.45); }
 
-  /* RESPONSIVE */
-  @media (max-width: 900px) { #stage { grid-template-columns: 52% 1fr; } }
-
-  @media (max-width: 640px) {
-    :root { --tabs-h: 40px; --choices-h: 100px; }
-    #stage { grid-template-columns: 1fr; grid-template-rows: 38vw 1fr; }
-    #right-col { order: -1; border-bottom: 1px solid var(--div); }
-    #left-col  { border-right: none; }
-    .stat-cell { padding: 0 0.55rem; }
-    .stat-val  { font-size: 0.9rem; }
-    .stat-cell:last-child { display: none; }
-    #topbar-title { font-size: 0.75rem; }
-    #topbar-btns button { padding: 0 0.6rem; font-size: 0.6rem; }
-  }
+  @media (max-width: 640px) { #stage { grid-template-columns: 1fr; grid-template-rows: 38vw 1fr; } #right-col { order: -1; } }
   </style>
 </head>
 <body>
 <div id="app">
-
-<header id="topbar">
-  <div id="topbar-title">Can You Survive the World the Plague Left Behind?</div>
-  <div id="byline-el"></div>
-  <div id="topbar-btns">
-    <button id="rewind">↺ RESTART GAME</button>
-  </div>
-</header>
+  <header id="topbar">
+    <div id="topbar-title">Can You Survive the World the Plague Left Behind?</div>
+    <div id="byline-el"></div>
+    <div id="topbar-btns"><button id="rewind">↺ RESTART GAME</button></div>
+  </header>
 
   <div id="stats">
     <div class="stat-cell"><span class="stat-label">Status</span><span class="stat-val" id="status-value">Villein</span></div>
@@ -366,10 +102,7 @@
   </div>
 
   <div id="stage">
-
-    <!-- LEFT: story + overlay panels + tabs -->
     <div id="left-col">
-
       <div class="outerContainer">
         <div id="story">
           <div class="header">
@@ -378,42 +111,9 @@
           </div>
         </div>
       </div>
-
-      <div id="panel-overlay">
-        <div id="panel-journal" class="panel-pane active">
-          <div class="panel-heading">Your Journal</div>
-          <div id="journal-entries"><p class="panel-placeholder">Choices recorded as you play.</p></div>
-        </div>
-        <div id="panel-vocab" class="panel-pane">
-          <div class="panel-heading">Medieval Terms</div>
-          <div id="vocab-list"><p class="panel-placeholder">Terms unlock as you progress.</p></div>
-        </div>
-        <div id="panel-history" class="panel-pane">
-          <div class="panel-heading">Historical Context</div>
-          <div class="history-entry"><div class="history-year">1315–1322</div><div class="history-title">The Great Famine</div><p>Relentless rain rotted crops across northern Europe for seven years. Grain prices tripled. An estimated 10–25% of some regions starved — weakening bodies for what came next.</p></div>
-          <div class="history-entry"><div class="history-year">1348–1351</div><div class="history-title">The Black Death</div><p>Plague reached England via Bristol in 1348 and killed 30–60% of the population within three years. No rank offered protection.</p></div>
-          <div class="history-entry"><div class="history-year">1351</div><div class="history-title">The Statute of Labourers</div><p>Parliament tried to freeze wages at pre-plague levels. Widely ignored — but still carried real legal risk. Enforcement depended entirely on your lord.</p></div>
-          <div class="history-entry"><div class="history-year">1350s</div><div class="history-title">The Agricultural Shift</div><p>Labour shortages drove many manors from arable farming toward livestock. Sheep farming expanded dramatically in Essex. Not ideology — survival arithmetic.</p></div>
-          <div class="history-entry"><div class="history-year">1350s–60s</div><div class="history-title">The Breakdown of Villeinage</div><p>Peasants began moving between manors for better wages. Desperate lords quietly ignored the rules. The legal fiction of serfdom was losing to the labour market.</p></div>
-          <div class="history-entry"><div class="history-year">1381</div><div class="history-title">The Peasants' Revolt</div><p>Thirty years of resentment boiled over. Peasants from Essex and Kent marched on London, briefly occupied the Tower. The revolt failed — but accelerated the legal end of serfdom.</p></div>
-          <div class="history-entry"><div class="history-year">Context</div><div class="history-title">What Reputation Meant</div><p>In a manor community, reputation determined whether the bailiff trusted you, whether neighbours loaned tools in a crisis, whether accusations would be believed in court.</p></div>
-        </div>
-        <div id="panel-map" class="panel-pane">
-          <div class="panel-heading">Colchester, 1350</div>
-          <img id="panel-map-img" src="start_map.webp" alt="Map of Colchester 1350" style="width:100%;height:auto;display:block;">
-        </div>
-      </div>
-
-      <div id="left-tabs">
-        <button class="ltab" data-panel="journal">Journal</button>
-        <button class="ltab" data-panel="vocab">Vocab</button>
-        <button class="ltab" data-panel="history">History</button>
-        <button class="ltab" data-panel="map">Map</button>
-      </div>
-
     </div>
 
-<div id="right-col">
+    <div id="right-col">
       <div id="scene-wrap">
         <div id="scene-img" style="background-image:url('start_map.webp')"></div>
         <div id="scene-season-overlay"></div>
@@ -430,8 +130,8 @@
         </div>
         <div id="panel-history" class="panel-pane">
           <div class="panel-heading">Historical Context</div>
-          <div class="history-entry"><div class="history-year">1348–1351</div><div class="history-title">The Black Death</div><p>Plague reached England via Bristol in 1348...</p></div>
-          <div class="history-entry"><div class="history-year">Context</div><div class="history-title">What Reputation Meant</div><p>In a manor community, reputation determined access to tools and court belief.</p></div>
+          <div class="history-entry"><div class="history-year">1348–1351</div><div class="history-title">The Black Death</div><p>Plague reached England via Bristol in 1348 and killed 30–60% of the population within three years.</p></div>
+          <div class="history-entry"><div class="history-year">Context</div><div class="history-title">What Reputation Meant</div><p>Reputation determined whether neighbors would help in a crisis or accusations were believed in court.</p></div>
         </div>
         <div id="panel-map" class="panel-pane">
           <div class="panel-heading">Colchester, 1350</div>
@@ -439,12 +139,10 @@
         </div>
       </div>
 
-      <div id="choices-container" style="position: relative;">
+      <div id="choices-container">
         <div id="stat-delta"></div>
         <div id="choices-label">What do you do?</div>
-        <div id="hud-choices">
-          <span class="hud-no-choices">— reading —</span>
-        </div>
+        <div id="hud-choices"><span class="hud-no-choices">— reading —</span></div>
       </div>
 
       <div id="left-tabs">
@@ -454,31 +152,8 @@
         <button class="ltab" data-panel="map">Map</button>
       </div>
     </div>
-
-      <div id="choices-container" style="position: relative;">
-        <div id="stat-delta"></div> <div id="choices-label">What do you do?</div>
-        <div id="hud-choices">
-          <span class="hud-no-choices">— reading —</span>
-        </div>
-      </div>
-
-      <div id="left-tabs">
-        <button class="ltab" data-panel="journal">Journal</button>
-        <button class="ltab" data-panel="vocab">Vocab</button>
-        <button class="ltab" data-panel="history">History</button>
-        <button class="ltab" data-panel="map">Map</button>
-      </div>
-
-    </div> ```
-
-### Important Visual Checks:
-* **Layering**: Because `#panel-overlay` is now inside the right column, when it slides up (`transform: translateY(0)`), it will cover your image and choices.
-* **The Glow**: Since you added the JavaScript logic to **`main.js`**, the "Wow, fascinating" choice will now pulse gold inside this new container.
-* **Visibility**: Make sure you also updated that `.stat-label` color opacity to **0.85** in your CSS so "COIN" and "GRAIN" aren't still hiding in the shadows.
-
-How is the layout feeling for you as an art director now that the tabs are on the right—does it feel more balanced with your hand-drawn art?
-
-
+  </div>
+</div>
 
 <script>
 (function () {
@@ -497,7 +172,6 @@ How is the layout feeling for you as an art director now that the tabs are on th
     l_winter_ale:        'l_winter_ale.webp',
   };
 
- // --- PRELOAD IMAGES ---
   (function() {
     for (var key in IMGS) {
       var img = new Image();
@@ -505,9 +179,6 @@ How is the layout feeling for you as an art director now that the tabs are on th
     }
   })();
   
-  // sceneState.imageFile is set by main.js when it processes
-  // ~ image = "..." assignments from the ink variable.
-  // Dead and special overrides take priority.
   window.sceneState = {
     imageFile: 'start_map.webp',
     isDead: false,
