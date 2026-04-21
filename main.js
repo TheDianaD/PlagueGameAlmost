@@ -1,98 +1,62 @@
 (function(storyContent) {
     'use strict';
 
-    var story           = new inkjs.Story(storyContent);
-    var savePoint       = "";
-    var lastChoiceText  = "";
+    var story = new inkjs.Story(storyContent);
+    var savePoint = "";
+    var lastChoiceText = "";
     var vocabNoticeShown = false;
-    var currentSeason   = "—";
-    var _prev           = { money: null, grain: null, livestock: null, health: null, reputation: null };
-    var _deltaTimer     = null;
-    var _pendingDeltas  = [];
+    var _prev = { money: null, grain: null };
+    var _deltaTimer = null;
+    var _pendingDeltas = [];
 
-    // ── GLOBAL TAGS ──────────────────────────────────
+    // GLOBAL TAGS
     var globalTags = story.globalTags;
     if (globalTags) {
         globalTags.forEach(function(tag) {
             var t = splitTag(tag);
-            if (!t) return;
-            var prop = t.key.toLowerCase();
-            if (prop === 'author') {
-                document.querySelectorAll('.byline, #byline-el')
-                    .forEach(function(el) { el.textContent = 'by ' + t.val; });
+            if (t && t.key.toLowerCase() === 'author') {
+                document.querySelectorAll('.byline, #byline-el').forEach(function(el) { 
+                    el.textContent = 'by ' + t.val; 
+                });
             }
         });
     }
 
-    var storyEl  = document.querySelector('#story');
+    var storyEl = document.querySelector('#story');
     var scrollEl = document.querySelector('.outerContainer');
 
-    var hasSave = loadSave();
-    setupButtons(hasSave);
+    setupButtons();
     savePoint = story.state.toJson();
     continueStory(true);
-    syncState();
-    updateHUD();
 
-    // ── MAIN LOOP ────────────────────────────────────
     function continueStory(firstTime) {
         var prevBottom = firstTime ? 0 : bottomEdge();
+        var fragment = document.createDocumentFragment(); // Performance optimization for lag
 
         while (story.canContinue) {
-            var text  = story.Continue();
-            var tags  = story.currentTags;
-            var cls   = [];
+            var text = story.Continue();
+            var tags = story.currentTags;
 
-            // ── TAGS ──────────────────────────────────
             tags.forEach(function(tag) {
                 var t = splitTag(tag);
-
                 if (t) {
                     var key = t.key.toUpperCase().trim();
-
-                    if (key === 'SCENE') {
-                        setScene(t.val.trim().toLowerCase());
-                    }
-                    else if (key === 'PHASE') {
-                        setPhase(t.val.trim().toLowerCase());
-                    }
-                    else if (key === 'CLASS') {
-                        cls.push(t.val);
-                    }
-                    else if (key === 'BACKGROUND') {
-                        scrollEl.style.backgroundImage = 'url(' + t.val + ')';
-                    }
-                    else if (key === 'CLEAR') {
-                        removeAll('p'); removeAll('img');
-                        setVisible('.header', false);
-                    }
-                    // JOURNAL tags have the format "JOURNAL Season Year: entry text"
-                    // splitTag splits on the FIRST colon, so key = "JOURNAL Season Year"
-                    else if (key.startsWith('JOURNAL')) {
+                    if (key.startsWith('JOURNAL')) {
                         var jSeason = key.slice('JOURNAL'.length).trim();
                         addJournalEntry(t.val.trim(), jSeason);
                     }
-                }
-                else if (tag.trim() === 'SHOW_DELTA') {
+                } else if (tag.trim() === 'SHOW_DELTA') {
                     flushDelta();
-                }
-                else if (tag.trim() === 'RESTART') {
+                } else if (tag.trim() === 'RESTART') {
                     restart(); return;
                 }
             });
 
-            // ── FILTER ────────────────────────────────
             if (!text.trim()) continue;
-
-            // swallow echoed choice text
             if (lastChoiceText && text.trim() === lastChoiceText.trim()) {
                 lastChoiceText = ''; continue;
             }
 
-            // swallow character-select artifacts
-            if (text.trim() === 'John' || text.trim() === 'Colette') continue;
-
-            // vocab lines — extract terms, don't render
             if (isVocabLine(text)) {
                 extractVocab(text);
                 if (!vocabNoticeShown && text.includes('VOCAB')) {
@@ -102,141 +66,98 @@
                 continue;
             }
 
-            // death detection
             checkDeath(text);
 
-            // ── BUILD PARAGRAPH ───────────────────────
             var p = document.createElement('p');
-
-            // Highlight numbers + unit pairs in gold
             p.innerHTML = text
                 .replace(/(\d+)\s+(pennies|shillings|pence|bushels?|acres?|cows?|rabbits?)/gi, '<strong>$1 $2</strong>')
                 .replace(/(\d+)%/g, '<strong>$1%</strong>');
 
-            // Drop-cap on major section openers
-            if (/^(ESSEX|The year|You stand|Your lord|There is much|You walk|Some days later|Time passes|Late summer|WINTER|MID AUTUMN|EARLY AUTUMN|LATE AUTUMN|HARVEST|RENT|LEASEHOLDER|As a leaseholder)/i.test(text)) {
+            if (/^(ESSEX|The year|WINTER|HARVEST)/i.test(text)) {
                 p.classList.add('section-start');
             }
-            cls.forEach(function(c) { p.classList.add(c); });
-
-            storyEl.appendChild(p);
+            fragment.appendChild(p);
         }
 
-        // post-batch: sync state once (not per paragraph)
+        storyEl.appendChild(fragment); // Append all text at once to reduce lag
         syncState();
         if (window.updateScene) window.updateScene();
         updateHUD();
+        renderChoices();
 
-        // auto-select John if character prompt appears
-        if (story.currentChoices.length > 0) {
-            var first = story.currentChoices[0];
-            if (first && (first.text === 'John' || first.text === 'Colette')) {
-                var idx = story.currentChoices.findIndex(function(c) { return c.text === 'John'; });
-                if (idx !== -1) {
-                    story.ChooseChoiceIndex(idx);
-                    savePoint = story.state.toJson();
-                    continueStory();
-                    return;
+        if (!firstTime) scrollDown(prevBottom);
+    }
+
+    function renderChoices() {
+        var hudChoices = document.getElementById('hud-choices');
+        if (!hudChoices) return;
+        hudChoices.innerHTML = '';
+        
+        if (!story.currentChoices.length) {
+            hudChoices.innerHTML = '<span class="hud-no-choices">— reading —</span>';
+        } else {
+            story.currentChoices.forEach(function(choice) {
+                var clickable = !choice.tags || !choice.tags.some(function(t) {
+                    return t.toUpperCase() === 'UNCLICKABLE';
+                });
+
+                var item = document.createElement('div');
+                item.className = 'hud-choice-item' + (clickable ? '' : ' disabled');
+                
+                // GLOW LOGIC:
+                if (choice.text.toLowerCase().includes("wow, fascinating")) {
+                    item.classList.add('attention-choice');
                 }
-            }
+
+                item.textContent = choice.text;
+
+                if (clickable) {
+                    item.addEventListener('click', function() {
+                        hudChoices.innerHTML = '<span class="hud-no-choices">— reading —</span>';
+                        lastChoiceText = choice.text;
+                        story.ChooseChoiceIndex(choice.index);
+                        savePoint = story.state.toJson();
+                        continueStory();
+                    });
+                }
+                hudChoices.appendChild(item);
+            });
         }
-
-144    // ── RENDER CHOICES ────────────────────────────
-145    var hudChoices = document.getElementById('hud-choices');
-146    if (hudChoices) {
-147        hudChoices.innerHTML = '';
-148        if (!story.currentChoices.length) {
-149            hudChoices.innerHTML = '<span class="hud-no-choices">— reading —</span>';
-150        } else {
-151            story.currentChoices.forEach(function(choice) {
-152                var clickable = !choice.tags || !choice.tags.some(function(t) {
-153                    return t.toUpperCase() === 'UNCLICKABLE';
-154                });
-155
-156                var item = document.createElement('div');
-157                item.className = 'hud-choice-item' + (clickable ? '' : ' disabled');
-158                item.textContent = choice.text;
-159
-160                // GLOW LOGIC:
-161                if (choice.text.toLowerCase().includes("wow, fascinating")) {
-162                    item.classList.add('attention-choice');
-163                }
-164
-165                if (clickable) {
-166                    item.addEventListener('click', function() {
-167                        hudChoices.innerHTML = '<span class="hud-no-choices">— reading —</span>';
-168                        lastChoiceText = choice.text;
-169                        story.ChooseChoiceIndex(choice.index);
-170                        savePoint = story.state.toJson();
-171                        syncState();
-172                        if (window.updateScene) window.updateScene();
-173                        updateHUD();
-174                        continueStory();
-175                    });
-176                }
-177                hudChoices.appendChild(item);
-178            }); // End forEach
-179        }
-180    }
-181
-182    if (!firstTime) scrollDown(prevBottom);
-183} // This ends the continueStory function
-
-    // ── STATE SYNC ───────────────────────────────────
-    // The ink file sets ~ image = "filename.webp" directly.
-    // We just read that variable and forward it to sceneState.imageFile.
-    // Death check remains as a safety net.
-    function setScene(v) {}   // no-op: ink handles images directly
-    function setPhase(v) {}   // no-op: ink handles images directly
+    }
 
     function syncState() {
         var s = window.sceneState;
         if (!s) return;
         try {
-            var deathCheck = story.variablesState.$('death_check');
-            if (deathCheck === 'dead') s.isDead = true;
-
-            // Read the image variable set by ink (~image = "filename.webp")
+            if (story.variablesState.$('death_check') === 'dead') s.isDead = true;
             var inkImage = story.variablesState.$('image');
-            if (inkImage && inkImage.trim()) {
-                s.imageFile = inkImage.trim();
-            }
+            if (inkImage && inkImage.trim()) s.imageFile = inkImage.trim();
         } catch(e) {}
     }
 
-    // ── DEATH CHECK (from text) ───────────────────────
     function checkDeath(text) {
         if (window.sceneState.isDead) return;
         var l = text.trim().toLowerCase();
-        if (l === 'dead' || l.includes('you die') || l.includes('you are dead') ||
-            l.includes('starvation claims') || l.includes('you fall with it')) {
+        if (l === 'dead' || l.includes('you die') || l.includes('you are dead') || l.includes('starvation claims')) {
             window.sceneState.isDead = true;
         }
     }
 
-    // ── VOCAB ────────────────────────────────────────
-function isVocabLine(text) {
-    return text.includes('VOCAB UNLOCKED') || text.includes('New Vocab Unlocked') ||
-           text.includes('______________________') ||
-           // Updated Regex: Handles terms with OR without leading dashes
-           /^([—–-]\s*)?[^:]+:.+/.test(text.trim()) || 
-           text.includes('Fun fact:');
-}
+    function isVocabLine(text) {
+        return text.includes('VOCAB UNLOCKED') || text.includes('New Vocab Unlocked') ||
+               text.includes('______________________') ||
+               /^([—–-]\s*)?[^:]+:.+/.test(text.trim()) || 
+               text.includes('Fun fact:');
+    }
 
-function extractVocab(text) {
-    text.split('\n').forEach(function(line) {
-        var l = line.trim();
-        // Updated Regex to capture terms correctly regardless of dashes
-        var m = l.match(/^([—–-]\s*)?(.+?):\s*(.+)/);
-        if (m) {
-            // m[2] is the term, m[3] is the definition
-            addVocabEntry(m[2].trim(), m[3].trim());
-        }
-        var f = l.match(/fun fact:\s*(.+)/i);
-        if (f) addVocabEntry('Fun Fact', f[1].trim());
-    });
-}
-
+    function extractVocab(text) {
+        text.split('\n').forEach(function(line) {
+            var m = line.trim().match(/^([—–-]\s*)?(.+?):\s*(.+)/);
+            if (m) addVocabEntry(m[2].trim(), m[3].trim());
+            var f = line.match(/fun fact:\s*(.+)/i);
+            if (f) addVocabEntry('Fun Fact', f[1].trim());
+        });
+    }
 
     function addVocabEntry(term, def) {
         var list = document.getElementById('vocab-list');
@@ -261,68 +182,35 @@ function extractVocab(text) {
         storyEl.appendChild(note);
     }
 
-    // ── JOURNAL ──────────────────────────────────────
-    var _lastJournalSeason = null;
-
     function addJournalEntry(text, season) {
         var journal = document.getElementById('journal-entries');
         if (!journal) return;
         var placeholder = journal.querySelector('.panel-placeholder');
         if (placeholder) placeholder.remove();
-        if (season && season !== _lastJournalSeason) {
-            _lastJournalSeason = season;
-            var hdr = document.createElement('div');
-            hdr.className = 'journal-season-header';
-            hdr.textContent = season;
-            journal.appendChild(hdr);
-        }
         var entry = document.createElement('div');
         entry.className = 'journal-entry';
         entry.textContent = text;
         journal.appendChild(entry);
     }
 
-    // ── HUD ──────────────────────────────────────────
-    // Flush accumulated deltas to the popup immediately
     function flushDelta() {
-        if (!_pendingDeltas.length) return;
-        showDelta(_pendingDeltas);
-        _pendingDeltas = [];
+        if (_pendingDeltas.length) { showDelta(_pendingDeltas); _pendingDeltas = []; }
     }
 
     function updateHUD() {
         try {
-            var money      = Number(story.variablesState.$('money'))      || 0;
-            var grain      = Number(story.variablesState.$('grain'))      || 0;
-            var livestock  = Number(story.variablesState.$('livestock'))  || 0;
-            var health     = Number(story.variablesState.$('health'))     || 100;
-            var reputation = Number(story.variablesState.$('reputation')) || 100;
-
-            // Accumulate deltas — shown only when # SHOW_DELTA tag fires in ink
-            [['money', money, 'coin'], ['grain', grain, 'grain'],
-             ['livestock', livestock, 'stock'], ['health', health, 'health'],
-             ['reputation', reputation, 'rep']].forEach(function(row) {
+            var money = Number(story.variablesState.$('money')) || 0;
+            var grain = Number(story.variablesState.$('grain')) || 0;
+            [['money', money, 'coin'], ['grain', grain, 'grain']].forEach(function(row) {
                 var diff = row[1] - (_prev[row[0]] === null ? row[1] : _prev[row[0]]);
                 if (_prev[row[0]] !== null && Math.round(diff) !== 0) {
                     _pendingDeltas.push({ val: Math.round(diff), label: row[2] });
                 }
                 _prev[row[0]] = row[1];
             });
-            // (no showDelta here — SHOW_DELTA tag calls flushDelta())
-
-            setText('money-value',      money);
-            setText('grain-value',      grain);
-            setText('livestock-value',  livestock);
-            setText('health-value',     health + '%');
-            setText('reputation-value', reputation + '%');
-
-            var status = story.variablesState.$('status') || 'villein';
-            setText('status-value', status.charAt(0).toUpperCase() + status.slice(1));
-            setText('season-label', currentSeason !== '—' ? currentSeason : 'Essex, 1351');
-
-            // season overlay on image
-            var overlay = document.getElementById('scene-season-overlay');
-            if (overlay) overlay.textContent = currentSeason !== '—' ? currentSeason : '';
+            setText('money-value', money);
+            setText('grain-value', grain);
+            setText('status-value', (story.variablesState.$('status') || 'villein').toUpperCase());
         } catch(e) {}
     }
 
@@ -335,110 +223,29 @@ function extractVocab(text) {
         var el = document.getElementById('stat-delta');
         if (!el) return;
         if (_deltaTimer) clearTimeout(_deltaTimer);
-        el.classList.remove('fading');
         el.innerHTML = deltas.map(function(d) {
-            var cls = d.val > 0 ? 'pos' : d.val < 0 ? 'neg' : 'neu';
+            var cls = d.val > 0 ? 'pos' : 'neg';
             return '<span class="delta-item ' + cls + '">' + (d.val > 0 ? '+' : '') + d.val + ' ' + d.label + '</span>';
         }).join('');
         el.classList.add('visible');
-        _deltaTimer = setTimeout(function() {
-            el.classList.add('fading');
-            setTimeout(function() { el.classList.remove('visible', 'fading'); }, 700);
-        }, 2400);
+        _deltaTimer = setTimeout(function() { el.classList.remove('visible'); }, 2400);
     }
 
-    // ── SAVE / LOAD ───────────────────────────────────
-    function loadSave() {
-        try {
-            var saved = localStorage.getItem('save-state');
-            if (saved) { story.state.LoadJson(saved); return true; }
-        } catch(e) {}
-        return false;
-    }
-
-    function setupButtons(hasSave) {
+    function setupButtons() {
         var rewind = document.getElementById('rewind');
-        var save   = document.getElementById('save');
-        var reload = document.getElementById('reload');
-
-        if (rewind) rewind.addEventListener('click', function() {
-            removeAll('p'); removeAll('img');
-            setVisible('.header', false);
-            var hc = document.getElementById('hud-choices');
-            if (hc) hc.innerHTML = '<span class="hud-no-choices">— reading —</span>';
-            restart();
-        });
-
-        if (save) save.addEventListener('click', function() {
-            try {
-                localStorage.setItem('save-state', savePoint);
-                if (reload) reload.removeAttribute('disabled');
-            } catch(e) {}
-        });
-
-        if (!hasSave && reload) reload.setAttribute('disabled', 'disabled');
-        if (reload) reload.addEventListener('click', function() {
-            if (reload.getAttribute('disabled')) return;
-            removeAll('p'); removeAll('img');
-            var hc = document.getElementById('hud-choices');
-            if (hc) hc.innerHTML = '<span class="hud-no-choices">— reading —</span>';
-            try {
-                var saved = localStorage.getItem('save-state');
-                if (saved) story.state.LoadJson(saved);
-            } catch(e) {}
-            continueStory(true);
-        });
+        if (rewind) rewind.addEventListener('click', function() { restart(); });
     }
 
     function restart() {
         story.ResetState();
-        setVisible('.header', true);
-        vocabNoticeShown = false;
-        currentSeason = '—';
-        _prev = { money: null, grain: null, livestock: null, health: null, reputation: null };
-        _pendingDeltas = [];
-        _lastJournalSeason = null;
-
-        Object.assign(window.sceneState, {
-            imageFile: 'start_map.webp',
-            isDead: false,
-        });
-        if (window.updateScene) window.updateScene();
-
-        // Reset panels
-        var journal = document.getElementById('journal-entries');
-        if (journal) journal.innerHTML = '<p class="panel-placeholder">Choices recorded as you play.</p>';
-        var vocab = document.getElementById('vocab-list');
-        if (vocab) vocab.innerHTML = '<p class="panel-placeholder">Terms unlock as you progress.</p>';
-
-        savePoint = story.state.toJson();
+        storyEl.innerHTML = '';
+        window.sceneState.isDead = false;
         continueStory(true);
-        scrollEl.scrollTop = 0;
     }
 
-    // ── SCROLL ────────────────────────────────────────
-    function scrollDown(prevBottom) {
-        var target = Math.min(prevBottom, scrollEl.scrollHeight - scrollEl.clientHeight);
-        var start  = scrollEl.scrollTop;
-        var dist   = target - start;
-        if (Math.abs(dist) < 4) return;
-        var t0 = null;
-        var dur = 1400;
-        function step(t) {
-            if (!t0) t0 = t;
-            var p    = Math.min((t - t0) / dur, 1);
-            var ease = p === 1 ? 1 : 1 - Math.pow(2, -10 * p);
-            scrollEl.scrollTop = start + dist * ease;
-            if (p < 1) requestAnimationFrame(step);
-        }
-        requestAnimationFrame(step);
-    }
-
-    // ── UTILS ─────────────────────────────────────────
     function splitTag(tag) {
         var i = tag.indexOf(':');
-        if (i === -1) return null;
-        return { key: tag.slice(0, i).trim(), val: tag.slice(i + 1).trim() };
+        return (i === -1) ? null : { key: tag.slice(0, i).trim(), val: tag.slice(i + 1).trim() };
     }
 
     function bottomEdge() {
@@ -446,14 +253,8 @@ function extractVocab(text) {
         return last ? last.offsetTop + last.offsetHeight : 0;
     }
 
-    function removeAll(sel) {
-        storyEl.querySelectorAll(sel).forEach(function(el) { el.remove(); });
-    }
-
-    function setVisible(sel, v) {
-        document.querySelectorAll(sel).forEach(function(el) {
-            el.classList.toggle('invisible', !v);
-        });
+    function scrollDown(prevBottom) {
+        scrollEl.scrollTop = scrollEl.scrollHeight;
     }
 
 })(storyContent);
