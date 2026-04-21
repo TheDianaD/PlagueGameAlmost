@@ -141,46 +141,46 @@
             }
         }
 
-        // ── RENDER CHOICES ────────────────────────────
-        var hudChoices = document.getElementById('hud-choices');
-        if (hudChoices) {
-            hudChoices.innerHTML = '';
-            if (!story.currentChoices.length) {
-                hudChoices.innerHTML = '<span class="hud-no-choices">— reading —</span>';
-            } else {
-                story.currentChoices.forEach(function(choice) {
-                    var clickable = !choice.tags || !choice.tags.some(function(t) {
-                        return t.toUpperCase() === 'UNCLICKABLE';
-                    });
-
-                    var item = document.createElement('div');
-                    item.className = 'hud-choice-item' + (clickable ? '' : ' disabled');
-                    item.textContent = choice.text;
-
-                    if (choice.text.toLowerCase().includes("wow, fascinating")) {
-                        item.classList.add('attention-choice');
-                        
-                    if (clickable) {
-                        item.addEventListener('click', function() {
-                            hudChoices.innerHTML = '<span class="hud-no-choices">— reading —</span>';
-
-                            lastChoiceText = choice.text;
-                            story.ChooseChoiceIndex(choice.index);
-                            savePoint = story.state.toJson();
-
-                            syncState();
-                            if (window.updateScene) window.updateScene();
-                            updateHUD();
-                            continueStory();
-                        });
-                    }
-                    hudChoices.appendChild(item);
-                });
-            }
-        }
-
-        if (!firstTime) scrollDown(prevBottom);
-    }
+144    // ── RENDER CHOICES ────────────────────────────
+145    var hudChoices = document.getElementById('hud-choices');
+146    if (hudChoices) {
+147        hudChoices.innerHTML = '';
+148        if (!story.currentChoices.length) {
+149            hudChoices.innerHTML = '<span class="hud-no-choices">— reading —</span>';
+150        } else {
+151            story.currentChoices.forEach(function(choice) {
+152                var clickable = !choice.tags || !choice.tags.some(function(t) {
+153                    return t.toUpperCase() === 'UNCLICKABLE';
+154                });
+155
+156                var item = document.createElement('div');
+157                item.className = 'hud-choice-item' + (clickable ? '' : ' disabled');
+158                item.textContent = choice.text;
+159
+160                // GLOW LOGIC:
+161                if (choice.text.toLowerCase().includes("wow, fascinating")) {
+162                    item.classList.add('attention-choice');
+163                }
+164
+165                if (clickable) {
+166                    item.addEventListener('click', function() {
+167                        hudChoices.innerHTML = '<span class="hud-no-choices">— reading —</span>';
+168                        lastChoiceText = choice.text;
+169                        story.ChooseChoiceIndex(choice.index);
+170                        savePoint = story.state.toJson();
+171                        syncState();
+172                        if (window.updateScene) window.updateScene();
+173                        updateHUD();
+174                        continueStory();
+175                    });
+176                }
+177                hudChoices.appendChild(item);
+178            }); // End forEach
+179        }
+180    }
+181
+182    if (!firstTime) scrollDown(prevBottom);
+183} // This ends the continueStory function
 
     // ── STATE SYNC ───────────────────────────────────
     // The ink file sets ~ image = "filename.webp" directly.
