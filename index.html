@@ -413,23 +413,56 @@
 
     </div>
 
-    <!-- RIGHT: image + choices -->
-    <div id="right-col">
+<div id="right-col">
       <div id="scene-wrap">
         <div id="scene-img" style="background-image:url('start_map.webp')"></div>
         <div id="scene-season-overlay"></div>
       </div>
-    <div id="choices-container" style="position: relative;"> <div id="stat-delta"></div> <div id="choices-label">What do you do?</div>
-  <div id="hud-choices">
-    <span class="hud-no-choices">— reading —</span>
-  </div>
-</div>
-    </div>
 
-  </div>
-</div>
+      <div id="panel-overlay">
+        <div id="panel-journal" class="panel-pane active">
+          <div class="panel-heading">Your Journal</div>
+          <div id="journal-entries"><p class="panel-placeholder">Choices recorded as you play.</p></div>
+        </div>
+        <div id="panel-vocab" class="panel-pane">
+          <div class="panel-heading">Medieval Terms</div>
+          <div id="vocab-list"><p class="panel-placeholder">Terms unlock as you progress.</p></div>
+        </div>
+        <div id="panel-history" class="panel-pane">
+          <div class="panel-heading">Historical Context</div>
+          <div class="history-entry"><div class="history-year">1348–1351</div><div class="history-title">The Black Death</div><p>Plague reached England via Bristol in 1348...</p></div>
+          <div class="history-entry"><div class="history-year">Context</div><div class="history-title">What Reputation Meant</div><p>In a manor community, reputation determined whether the bailiff trusted you...</p></div>
+        </div>
+        <div id="panel-map" class="panel-pane">
+          <div class="panel-heading">Colchester, 1350</div>
+          <img id="panel-map-img" src="start_map.webp" alt="Map of Colchester 1350">
+        </div>
+      </div>
 
-<div id="stat-delta"></div>
+      <div id="choices-container" style="position: relative;">
+        <div id="stat-delta"></div> <div id="choices-label">What do you do?</div>
+        <div id="hud-choices">
+          <span class="hud-no-choices">— reading —</span>
+        </div>
+      </div>
+
+      <div id="left-tabs">
+        <button class="ltab" data-panel="journal">Journal</button>
+        <button class="ltab" data-panel="vocab">Vocab</button>
+        <button class="ltab" data-panel="history">History</button>
+        <button class="ltab" data-panel="map">Map</button>
+      </div>
+
+    </div> ```
+
+### Important Visual Checks:
+* **Layering**: Because `#panel-overlay` is now inside the right column, when it slides up (`transform: translateY(0)`), it will cover your image and choices.
+* **The Glow**: Since you added the JavaScript logic to **`main.js`**, the "Wow, fascinating" choice will now pulse gold inside this new container.
+* **Visibility**: Make sure you also updated that `.stat-label` color opacity to **0.85** in your CSS so "COIN" and "GRAIN" aren't still hiding in the shadows.
+
+How is the layout feeling for you as an art director now that the tabs are on the right—does it feel more balanced with your hand-drawn art?
+
+
 
 <script>
 (function () {
