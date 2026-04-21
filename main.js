@@ -157,6 +157,9 @@
                     item.className = 'hud-choice-item' + (clickable ? '' : ' disabled');
                     item.textContent = choice.text;
 
+                    if (choice.text.toLowerCase().includes("wow, fascinating")) {
+                        item.classList.add('attention-choice');
+                        
                     if (clickable) {
                         item.addEventListener('click', function() {
                             hudChoices.innerHTML = '<span class="hud-no-choices">— reading —</span>';
