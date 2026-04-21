@@ -68,6 +68,16 @@
   #topbar-btns button:hover  { color: rgba(223,228,240,0.8); background: rgba(255,255,255,0.03); }
   #topbar-btns button:disabled { color: rgba(255,255,255,0.1); cursor: default; }
 
+  #rewind {
+  color: var(--gold) !important; /* Forces the gold color */
+  font-weight: 700;
+  background: rgba(200,164,74,0.1) !important;
+  border-left: 1px solid var(--div);
+}
+#rewind:hover {
+  background: var(--gold) !important;
+  color: var(--bg) !important;
+}
   /* STATS BAR */
   #stats {
     display: flex;
@@ -82,7 +92,7 @@
   .stat-cell:last-child { border-right: none; flex: 1.5; }
   .stat-label {
     font-size: 0.52rem; letter-spacing: 0.18em;
-    text-transform: uppercase; color: rgba(223,228,240,0.24); line-height: 1;
+    text-transform: uppercase; color: rgba(rgba(223,228,240,0.24); line-height: 1;
   }
   .stat-val {
     font-family: var(--fd); font-size: 1.05rem; font-weight: 600;
@@ -99,7 +109,34 @@
     grid-template-columns: 50% 1fr;
     overflow: hidden;
   }
+/* Brighten and highlight the Restart button */
+#rewind {
+  color: var(--gold) !important;
+  font-weight: 700;
+  background: rgba(200,164,74,0.1) !important;
+  border-left: 1px solid var(--div);
+}
+#rewind:hover {
+  background: var(--gold) !important;
+  color: var(--bg) !important;
+}
 
+/* Make the choice prompt more visible */
+#choices-label {
+  font-size: 0.85rem; 
+  color: var(--gold); 
+  padding: 0.8rem 1rem 0.4rem; 
+}
+
+/* Move the stat popup to the bottom right of the choice area */
+#stat-delta {
+  position: absolute; 
+  bottom: 10px;
+  right: 10px;
+  top: auto; 
+  left: auto;
+  border: 1px solid var(--gold);
+}
   /* LEFT COLUMN */
   #left-col {
     position: relative; display: flex; flex-direction: column;
@@ -295,15 +332,13 @@
 <body>
 <div id="app">
 
-  <header id="topbar">
-    <div id="topbar-title">Can You Survive the World the Plague Left Behind?</div>
-    <div id="byline-el"></div>
-    <div id="topbar-btns">
-      <button id="rewind">↺ Restart</button>
-      <button id="save">◎ Save</button>
-      <button id="reload" disabled>⊙ Load</button>
-    </div>
-  </header>
+<header id="topbar">
+  <div id="topbar-title">Can You Survive the World the Plague Left Behind?</div>
+  <div id="byline-el"></div>
+  <div id="topbar-btns">
+    <button id="rewind">↺ RESTART GAME</button>
+  </div>
+</header>
 
   <div id="stats">
     <div class="stat-cell"><span class="stat-label">Status</span><span class="stat-val" id="status-value">Villein</span></div>
