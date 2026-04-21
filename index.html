@@ -92,7 +92,7 @@
   .stat-cell:last-child { border-right: none; flex: 1.5; }
   .stat-label {
     font-size: 0.52rem; letter-spacing: 0.18em;
-    text-transform: uppercase; color: rgba(rgba(223,228,240,0.24); line-height: 1;
+    text-transform: uppercase; color: rgba(223,228,240,0.24); line-height: 1;
   }
   .stat-val {
     font-family: var(--fd); font-size: 1.05rem; font-weight: 600;
@@ -434,6 +434,14 @@
     l_winter_ale:        'l_winter_ale.webp',
   };
 
+ // --- PRELOAD IMAGES ---
+  (function() {
+    for (var key in IMGS) {
+      var img = new Image();
+      img.src = IMGS[key];
+    }
+  })();
+  
   // sceneState.imageFile is set by main.js when it processes
   // ~ image = "..." assignments from the ink variable.
   // Dead and special overrides take priority.
