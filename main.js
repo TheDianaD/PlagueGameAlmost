@@ -212,22 +212,24 @@
     }
 
     // ── VOCAB ────────────────────────────────────────
-    function isVocabLine(text) {
-        return text.includes('VOCAB UNLOCKED') || text.includes('New Vocab Unlocked') ||
-               text.includes('______________________') ||
-               /^[—–]\s*.+:\s*.+/.test(text.trim()) ||
-               text.includes('Fun fact:');
-    }
+function isVocabLine(text) {
+    return text.includes('VOCAB UNLOCKED') || text.includes('New Vocab Unlocked') ||
+           text.includes('______________________') ||
+           // Added standard hyphen - to the list of recognized markers
+           /^[—––-]\s*.+:\s*.+/.test(text.trim()) || 
+           text.includes('Fun fact:');
+}
 
-    function extractVocab(text) {
-        text.split('\n').forEach(function(line) {
-            var l = line.trim();
-            var m = l.match(/^[—–]\s*(.+?):\s*(.+)/);
-            if (m) addVocabEntry(m[1].trim(), m[2].trim());
-            var f = l.match(/fun fact:\s*(.+)/i);
-            if (f) addVocabEntry('Fun Fact', f[1].trim());
-        });
-    }
+function extractVocab(text) {
+    text.split('\n').forEach(function(line) {
+        var l = line.trim();
+        // Updated regex to handle standard hyphens
+        var m = l.match(/^[—––-]\s*(.+?):\s*(.+)/);
+        if (m) addVocabEntry(m[1].trim(), m[2].trim());
+        var f = l.match(/fun fact:\s*(.+)/i);
+        if (f) addVocabEntry('Fun Fact', f[1].trim());
+    });
+}
 
     function addVocabEntry(term, def) {
         var list = document.getElementById('vocab-list');
