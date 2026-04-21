@@ -90,10 +90,14 @@
     border-right: 1px solid var(--div); min-width: 0;
   }
   .stat-cell:last-child { border-right: none; flex: 1.5; }
-  .stat-label {
-    font-size: 0.52rem; letter-spacing: 0.18em;
-    text-transform: uppercase; color: rgba(223,228,240,0.24); line-height: 1;
-  }
+/* STATS HEADERS - Much brighter now */
+.stat-label {
+  font-size: 0.55rem; 
+  letter-spacing: 0.18em;
+  text-transform: uppercase; 
+  color: rgba(223, 228, 240, 0.85); /* Increased contrast significantly */
+  line-height: 1;
+}
   .stat-val {
     font-family: var(--fd); font-size: 1.05rem; font-weight: 600;
     color: var(--text); line-height: 1.15; white-space: nowrap;
@@ -229,18 +233,17 @@
     display: flex; border-top: 1px solid var(--div);
     background: rgba(3,5,12,0.95); z-index: 11;
   }
-  .ltab {
-    flex: 1; border: none; background: none;
-    font-family: var(--fb); font-size: 0.62rem;
-    letter-spacing: 0.18em; text-transform: uppercase;
-    color: rgba(223,228,240,0.28);
-    border-right: 1px solid var(--div);
-    cursor: pointer; transition: color 0.13s, background 0.13s;
-  }
-  .ltab:last-child { border-right: none; }
-  .ltab:hover:not(.active) { color: rgba(223,228,240,0.6); }
-  .ltab.active { color: var(--gold); background: rgba(200,164,74,0.05); border-top: 1px solid var(--gold); }
-
+.ltab {
+  flex: 1; border: none; background: none;
+  font-family: var(--fb); font-size: 0.75rem; 
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(223, 228, 240, 0.7); 
+  border-right: 1px solid var(--div);
+  cursor: pointer; transition: all 0.2s;
+}
+.ltab:hover:not(.active) { color: #fff; background: rgba(255,255,255,0.05); }
+.ltab.active { color: var(--gold); background: rgba(200,164,74,0.1); border-top: 2px solid var(--gold); }
+    
   /* RIGHT COLUMN */
   #right-col { display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
 
@@ -291,7 +294,19 @@
     font-size: 0.88rem; padding: 0.45rem 1rem;
     font-family: var(--fb); width: 100%; text-align: center; align-self: center;
   }
-
+/* ATTENTION CHOICE - Special glow for "Wow, fascinating" */
+@keyframes gold-pulse {
+  0% { box-shadow: 0 0 0 0px rgba(200, 164, 74, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(200, 164, 74, 0); }
+  100% { box-shadow: 0 0 0 0px rgba(200, 164, 74, 0); }
+}
+.attention-choice {
+  border: 1px solid var(--gold) !important;
+  margin: 5px 10px;
+  border-radius: 4px;
+  animation: gold-pulse 2s infinite;
+  background: rgba(200, 164, 74, 0.1) !important;
+}
   /* STAT DELTA */
   #stat-delta {
     position: fixed; left: 0;
