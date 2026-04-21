@@ -215,21 +215,25 @@
 function isVocabLine(text) {
     return text.includes('VOCAB UNLOCKED') || text.includes('New Vocab Unlocked') ||
            text.includes('______________________') ||
-           // Added standard hyphen - to the list of recognized markers
-           /^[—––-]\s*.+:\s*.+/.test(text.trim()) || 
+           // Updated Regex: Handles terms with OR without leading dashes
+           /^([—–-]\s*)?[^:]+:.+/.test(text.trim()) || 
            text.includes('Fun fact:');
 }
 
 function extractVocab(text) {
     text.split('\n').forEach(function(line) {
         var l = line.trim();
-        // Updated regex to handle standard hyphens
-        var m = l.match(/^[—––-]\s*(.+?):\s*(.+)/);
-        if (m) addVocabEntry(m[1].trim(), m[2].trim());
+        // Updated Regex to capture terms correctly regardless of dashes
+        var m = l.match(/^([—–-]\s*)?(.+?):\s*(.+)/);
+        if (m) {
+            // m[2] is the term, m[3] is the definition
+            addVocabEntry(m[2].trim(), m[3].trim());
+        }
         var f = l.match(/fun fact:\s*(.+)/i);
         if (f) addVocabEntry('Fun Fact', f[1].trim());
     });
 }
+
 
     function addVocabEntry(term, def) {
         var list = document.getElementById('vocab-list');
